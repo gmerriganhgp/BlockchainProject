@@ -16,8 +16,8 @@ The ledger is stored in JSON format in the ledger.json file.
 ```
 
 ## Todo:
-[x] Run Flask server in separate thread
-[x] Write Method to update ledger to the longest ledger available
-[x] Write methods for creating public/private key pair and signing transactions
-[ ] Implement node discovery algorithm
-[ ] Implement proof of work algorithm and block hash tree data structure. 
+- [x] Run Flask server in separate thread
+- [x] Write Method to update ledger to the longest ledger available
+- [x] Write methods for creating public/private key pair and signing transactions
+- [ ] Implement node discovery algorithm
+- [ ] Implement proof of work algorithm and block hash tree data structure. 
