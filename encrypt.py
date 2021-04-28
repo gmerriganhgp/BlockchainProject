@@ -1,4 +1,4 @@
-from ecdsa import SigningKey, SECP256k1
+from ecdsa import SigningKey, SECP256k1, VerifyingKey
 import hashlib
 
 def sha256(data):
@@ -26,11 +26,17 @@ def sign_tx(tx):
 
 def verify():
     pass
-SigningKey
-# text = "message"
 
-secret, public = get_keys()
-print(secret.to_string())
+# sk = SigningKey.generate(curve=SECP256k1)
+# vk = sk.verifying_key
+
+# message = bytearray.fromhex(sha256('test'))
+
+# signed = sk.sign(message)
+
+# print(vk.verify(signed, message))
+
+
 
 # signature = sk.sign(b"message")
 # assert vk.verify(signature, b"message")

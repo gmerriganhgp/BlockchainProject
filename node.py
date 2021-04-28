@@ -18,14 +18,14 @@ def sha256(data):
 
 def node_discover_loop(node):
     while True:
-        time.sleep(1)
+        time.sleep(node.loop_delay)
         # print(node.connections)
         node.find_longest_peer()
 
 
 # class for Node on the p2p network
 class Node:
-    def __init__(self, port=5050, connections=[], target_file="ledger.json"):
+    def __init__(self, port=5050, connections=[], target_file="ledger.json", loop_delay=1):
         import socket
         a = socket.gethostbyname(socket.gethostname())
         print(a)
@@ -37,32 +37,47 @@ class Node:
         self.target_file=target_file
         self.ledger = json.load(open(self.target_file, "r"))
         self.unconfirmed_tx = []
+        self.loop_delay = loop_delay
 
+        # Default route returns other nodes that node is currently connected to
         @self.app.route("/", methods=["GET"])
         def index():
             self.connections.append(request.remote_addr)
             print(request.remote_addr)
             return jsonify(self.connections)
 
+        # returns a node's copy of the full ledger
+        # TODO: implement hash tree to replace this method
         @self.app.route("/full-ledger", methods=["GET"])
         def full_ledger():
             return str(json.load(open(target_file, "r")))
 
+        # returns the current length of the node's copy of the ledger
         @self.app.route("/length", methods=["GET"])
         def length():
             return str(len(json.load(open(target_file, "r"))))
 
+        # recieves POST request to add transaction to the ledger. 
         @self.app.route("/write-transaction", methods=["POST"])
         def write_transaction():
+            # TODO
             data = request.form
-            print(data)
+            # print(data)
             if "secret_key" in data.keys():
                 assert data["from"] == ecdsa.SigningKey.from_string(data["secret_key"], curve=ecdsa.SECP256k1).verifying_key
 
             else:
-                public = ecdsa.VerifyingKey.from_hex(data["from"].encode(), curve=ecdsa.SECP256k1)
-                print(public.verify(data["hash"], data["signature"]))
-                print("test")
+                from_key = bytearray.fromhex(data["from"])
+
+                public = ecdsa.VerifyingKey.from_string(from_key, curve=ecdsa.SECP256k1)
+
+                try:
+                    assert public.verify(bytearray.fromhex(data["signature"]), bytearray.fromhex(data["hash"]))
+                    self.unconfirmed_tx.append(dict(data))
+                    print(self.unconfirmed_tx)
+                except Exception as e:
+                    print(e)
+
 
             return "200"
 
@@ -75,9 +90,10 @@ class Node:
 
         @self.app.route("/add-block", methods=["POST"])
         def add_block():
-            # todo
+            # TODO
             return "200"
 
+        # returns the current balance of a public key/address
         @self.app.route("/key-balance/<key>")
         def key_balance(key):
             return self.get_key_balance(key)
@@ -92,8 +108,10 @@ class Node:
         assert not self.started
         self.started = True
         self.thread.start()
+        # start loop which queries connected nodes.
         Thread(target=node_discover_loop, kwargs={'node': self}).start()
 
+    # checks all known peers 
     def find_longest_peer(self):
         lengths = {}
 
@@ -111,7 +129,7 @@ class Node:
 
 
 
-
+    # method for making requests to other nodes
     def request(self, url, endpoint):
         try:
             return requests.get("http://" + url + endpoint)
