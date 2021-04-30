@@ -19,7 +19,7 @@ def key_from_string(string):
     return SigningKey.from_string(string, curve=SECP256k1)
 
 def hash_tx(tx):
-    return sha256(tx["from"] + tx["to"] + tx["amount"] + tx["timestamp"])
+    return sha256(str(tx["from"]) + str(tx["to"]) + str(tx["amount"]) + str(tx["time"]))
 
 def sign_tx(tx):
     pass

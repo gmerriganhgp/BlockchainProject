@@ -1,6 +1,5 @@
-from node import Node
+from node import Node, MiningNode
 import time
 
 node = Node()
-
 node.start()

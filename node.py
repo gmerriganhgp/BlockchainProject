@@ -100,6 +100,10 @@ class Node:
 
 
         self.thread = Thread(target=self.app.run, kwargs={'port': port, 'host': '0.0.0.0'})
+
+        @self.app.route("/unconfirmed-tx")
+        def unconfirmed_tx():
+            return jsonify(self.unconfirmed_tx)
         
 
 
@@ -126,6 +130,12 @@ class Node:
 
             else:
                 self.connections.remove(connection)
+
+
+            peer_connections = self.request(connection, "")
+            for i in peer_connections:
+                if i not in self.connections:
+                    self.connections.append(i)
 
 
 
@@ -165,11 +175,31 @@ class Node:
 # node1 = Node(connections=["127.0.0.1:5051"])
 # node1.start()
 
-node = Node()
-node.start()
+
 
 # node2 = Node(port=5051, connections=["127.0.0.1:5050"], target_file="ledger2.json")
 # node2.start()
 # node.find_longest_peer()
 
+
+class MiningNode(Node):
+    
+    def collect_tx(self):
+
+        for connection in self.connections:
+            data = self.request(connection, "/unconfirmed-tx")
+            for tx in data:
+                if not any(i["hash"] == tx["hash"] for i in self.unconfirmed_tx):
+                    self.connections.append(tx)
+
+
+    def start(self):
+        assert not self.started
+        self.started = True
+        self.thread.start()
+        # start loop which queries connected nodes.
+        Thread(target=node_discover_loop, kwargs={'node': self}).start()
+        while True:
+            self.collect_tx()
+            time.sleep(1)
 
