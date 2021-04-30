@@ -27,8 +27,8 @@ def node_discover_loop(node):
 class Node:
     def __init__(self, port=5050, connections=[], target_file="ledger.json", loop_delay=1):
         import socket
-        a = socket.gethostbyname(socket.gethostname())
-        print(a)
+        self.address = socket.gethostbyname(socket.gethostname())
+
         self.port = port
         self.connections=connections
         self.app = Flask("test")
@@ -42,7 +42,8 @@ class Node:
         # Default route returns other nodes that node is currently connected to
         @self.app.route("/", methods=["GET"])
         def index():
-            self.connections.append(request.remote_addr)
+            if (request.remote_addr not in self.connections) and (request.remote_addr != self.address):
+                self.connections.append(request.remote_addr)
             print(request.remote_addr)
             return jsonify(self.connections)
 
