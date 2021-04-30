@@ -132,7 +132,7 @@ class Node:
                 self.connections.remove(connection)
 
 
-            peer_connections = self.request(connection, "").text
+            peer_connections = json.loads(self.request(connection, "").text)
             for i in peer_connections:
                 if i not in self.connections:
                     self.connections.append(i)
