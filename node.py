@@ -142,7 +142,7 @@ class Node:
     # method for making requests to other nodes
     def request(self, url, endpoint):
         try:
-            return requests.get("http://" + url + endpoint)
+            return requests.get("http://" + url + ":5050" + endpoint)
         except Exception as e:
             print(e)
 
