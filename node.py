@@ -20,6 +20,10 @@ def node_discover_loop(node):
     while True:
         time.sleep(node.loop_delay)
         # print(node.connections)
+        try:
+            node.connections.remove("127.0.0.1")
+        except:
+            pass
         node.find_longest_peer()
 
 
