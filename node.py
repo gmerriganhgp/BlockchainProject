@@ -7,6 +7,7 @@ import hashlib
 import ast
 import encrypt
 import ecdsa
+from block import Block
 
 def read_ledger():
     with open("ledger.json", "r") as ledger:
@@ -25,6 +26,8 @@ def node_discover_loop(node):
         except:
             pass
         node.find_longest_peer()
+        with open("addresses.txt", "w") as file1:
+            file1.write("\n".join(node.connections))
 
 
 # class for Node on the p2p network
@@ -77,6 +80,7 @@ class Node:
                 public = ecdsa.VerifyingKey.from_string(from_key, curve=ecdsa.SECP256k1)
 
                 try:
+                    assert data["hash"] == encrypt.hash_tx(data)
                     assert public.verify(bytearray.fromhex(data["signature"]), bytearray.fromhex(data["hash"]))
                     self.unconfirmed_tx.append(dict(data))
                     print(self.unconfirmed_tx)
@@ -136,11 +140,14 @@ class Node:
             else:
                 self.connections.remove(connection)
 
+            try:
+                peer_connections = json.loads(self.request(connection, "").text)
+                for i in peer_connections:
+                    if i not in self.connections:
+                        self.connections.append(i)
+            except Exception as e:
+                self.connections.remove(connection)
 
-            peer_connections = json.loads(self.request(connection, "").text)
-            for i in peer_connections:
-                if i not in self.connections:
-                    self.connections.append(i)
 
 
 
@@ -150,6 +157,7 @@ class Node:
             return requests.get("http://" + url + ":5050" + endpoint)
         except Exception as e:
             print(e)
+            return "[]"
 
     def update_ledger_file(self):
         print("\nupdated ledger file\n")
@@ -188,6 +196,7 @@ class Node:
 
 
 class MiningNode(Node):
+
     
     def collect_tx(self):
 
@@ -199,12 +208,20 @@ class MiningNode(Node):
 
 
     def start(self):
-        assert not self.started
-        self.started = True
-        self.thread.start()
-        # start loop which queries connected nodes.
-        Thread(target=node_discover_loop, kwargs={'node': self}).start()
+        try:
+            with open("addresses.txt", "r") as file1:
+                for line in file1:
+                    self.connections.append(line)
+
+        except:
+            pass
+
+        super().start()
         while True:
             self.collect_tx()
             time.sleep(1)
+
+
+
+    
 

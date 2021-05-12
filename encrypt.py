@@ -1,6 +1,8 @@
 from ecdsa import SigningKey, SECP256k1, VerifyingKey
 import hashlib
 
+DIFFICULTY = 8025175753493781531383827216310169394307860406055980532937105502753521
+
 def sha256(data):
     return hashlib.sha256(data.encode()).hexdigest()
 

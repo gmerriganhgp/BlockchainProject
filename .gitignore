@@ -1,3 +1,4 @@
 *.pyc
 *.drawio
+addresses.txt
 test.py
