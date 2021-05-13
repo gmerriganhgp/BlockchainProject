@@ -126,7 +126,6 @@ class Node:
 
     # checks all known peers 
     def find_longest_peer(self):
-        lengths = {}
 
         for connection in self.connections:
             res = self.request(connection, "/length")
@@ -167,14 +166,15 @@ class Node:
         balance = 0
         num_tx = 0
         ledger = json.load(open("ledger.json"))
-        for tx in ledger:
-            if tx["to"] == key:
-                balance += tx["amount"]
-                num_tx += 1
-            
-            if tx["from"] == key:
-                balance -= tx["amount"]
-                num_tx += 1
+        for block in ledger:
+            for tx in block["transactions"]:
+                if tx["to"] == key:
+                    balance += tx["amount"]
+                    num_tx += 1
+
+                if tx["from"] == key:
+                    balance -= tx["amount"]
+                    num_tx += 1
 
         return {
             "address": key,

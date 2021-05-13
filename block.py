@@ -17,3 +17,19 @@ class Block:
     def __str__(self):
         return str(self.__dict__)
 
+    @staticmethod
+    def from_str(string):
+        import json
+        a = json.loads(string)
+        block = Block()
+        for block in a:
+            block.transactions.append(a)
+
+        return block
+
+    @staticmethod
+    def from_dict(dict):
+        block = Block()
+        for i in dict["transactions"]:
+            block.transactions.append(i)
+        return block
